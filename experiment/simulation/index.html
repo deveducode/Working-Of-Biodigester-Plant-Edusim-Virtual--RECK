@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Interactive Biogas Digester Simulation</title>
+  <link rel="stylesheet" href="main.css">
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -94,11 +95,6 @@
       stroke: #e63946;
       stroke-width: 3px;
       animation: pulse 0.8s infinite;
-    }
-    @keyframes pulse {
-      0% { stroke-opacity: 0.6; stroke-width: 2px; }
-      50% { stroke-opacity: 1; stroke-width: 4px; }
-      100% { stroke-opacity: 0.6; stroke-width: 2px; }
     }
     
     .waste-particle {
@@ -377,19 +373,8 @@
       animation: slurryFlow 2s infinite;
     }
 
-    @keyframes slurryFlow {
-      0% { transform: translateY(0); opacity: 0; }
-      50% { transform: translateY(30px); opacity: 1; }
-      100% { transform: translateY(60px); opacity: 0; }
-    }
-
     .overflow-drip {
       animation: overflowDrip 1s infinite;
-    }
-
-    @keyframes overflowDrip {
-      0% { transform: translateY(0) scale(1); opacity: 1; }
-      100% { transform: translateY(40px) scale(0.8); opacity: 0; }
     }
 
     .tooltip {
@@ -403,131 +388,388 @@
       z-index: 1000;
     }
 
-    /* Enhanced Animation Styles */
-    .component-glow {
-      filter: drop-shadow(0 0 8px rgba(76, 175, 80, 0.8));
-      transition: filter 0.3s ease;
+    /* Vortex Tank Animation Styles */
+    .water-level {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 50%;
+      background: linear-gradient(to bottom, #8B4513, #5A2D0C);
+      border-top-left-radius: 1rem;
+      border-top-right-radius: 1rem;
+      overflow: hidden;
+      z-index: 1;
     }
 
-    .component-active {
-      stroke: #4CAF50;
-      stroke-width: 3px;
-      animation: activeComponent 1.5s infinite;
+    .water-level::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 15px;
+      background: linear-gradient(to right, rgba(139, 69, 19, 0.9), rgba(90, 45, 12, 0.9));
+      border-radius: 50% / 100% 100% 0 0;
+      transform: translateY(-50%);
+      animation: water-surface 4s ease-in-out infinite alternate;
+      z-index: 2;
     }
 
-    @keyframes activeComponent {
-      0% { stroke-opacity: 0.4; }
-      50% { stroke-opacity: 1; }
-      100% { stroke-opacity: 0.4; }
+    @keyframes water-surface {
+      from { transform: translateY(-50%) translateX(0); }
+      to { transform: translateY(-50%) translateX(10%); }
     }
 
-    /* Mixing tank animations */
-    .mixing-container {
-      clip-path: url(#mixingTankClip);
+    .vortex {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 150px;
+      height: 250px;
+      border-radius: 50% / 10% 10% 90% 90%;
+      background: radial-gradient(ellipse at center, rgba(255,255,255,0.7) 0%, rgba(90,45,12,0.9) 70%, rgba(0,0,0,0.2) 100%);
+      box-shadow: inset 0 0 20px rgba(255,255,255,0.7), 0 0 15px rgba(0,0,0,0.4);
+      transform: translate(-50%, -50%) rotateX(60deg);
+      animation: vortex-spin 4s linear infinite;
+      z-index: 3;
     }
 
-    .mixing-swirl {
-      animation: mixingSwirl 4s infinite linear;
-      transform-origin: 100px 325px;
+    @keyframes vortex-spin {
+      from { transform: translate(-50%, -50%) rotateX(60deg) rotateZ(0deg); }
+      to { transform: translate(-50%, -50%) rotateX(60deg) rotateZ(360deg); }
     }
 
-    @keyframes mixingSwirl {
-      0% { transform: rotate(0deg) scale(0.8); }
-      50% { transform: rotate(180deg) scale(1); }
-      100% { transform: rotate(360deg) scale(0.8); }
+    .arrow {
+      position: absolute;
+      width: 30px;
+      height: 10px;
+      background-color: #fdd835;
+      clip-path: polygon(0% 25%, 75% 25%, 75% 0%, 100% 50%, 75% 100%, 75% 75%, 0% 75%);
+      transform-origin: center center;
+      z-index: 4;
+      left: 50%;
+      top: 50%;
     }
 
-    .mixing-bubble {
-      fill: url(#bubbleGradient);
-      animation: mixingBubbleRise 2s infinite;
+    @keyframes arrow-orbit {
+      from { transform: translate(-50%, -50%) rotate(var(--initial-rotation, 0deg)) translateX(var(--orbit-radius-x)) rotateY(var(--tilt-angle)) rotateZ(0deg); }
+      to { transform: translate(-50%, -50%) rotate(var(--initial-rotation, 0deg)) translateX(var(--orbit-radius-x)) rotateY(var(--tilt-angle)) rotateZ(360deg); }
     }
 
-    @keyframes mixingBubbleRise {
-      0% { transform: translateY(20px); opacity: 0; }
-      50% { opacity: 1; }
-      100% { transform: translateY(-20px); opacity: 0; }
+    .vapor-particle {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 15px;
+      height: 15px;
+      background-color: rgba(255, 255, 255, 0.7);
+      clip-path: polygon(0% 100%, 50% 0%, 100% 100%, 75% 100%, 75% 50%, 25% 50%, 25% 100%);
+      animation: rise-and-fade linear infinite;
+      pointer-events: none;
+      z-index: 6;
+      transform-origin: center bottom;
     }
 
-    /* Digester animations */
-    .digester-container {
-      clip-path: url(#digesterClip);
+    @keyframes rise-and-fade {
+      0% {
+        transform: translate(-50%, 0) scale(0.6) translateX(0px);
+        opacity: 0.5;
+      }
+      15% {
+        opacity: 0.9;
+        transform: translate(-50%, -60px) scale(0.9) translateX(20px);
+      }
+      30% {
+        opacity: 0.8;
+        transform: translate(-50%, -120px) scale(1.0) translateX(-20px);
+      }
+      45% {
+        opacity: 0.7;
+        transform: translate(-50%, -180px) scale(1.1) translateX(20px);
+      }
+      60% {
+        opacity: 0.6;
+        transform: translate(-50%, -240px) scale(1.2) translateX(-20px);
+      }
+      80% {
+        opacity: 0.4;
+        transform: translate(-50%, -350px) scale(1.25) translateX(10px);
+      }
+      100% {
+        transform: translate(-50%, -500px) scale(1.3);
+        opacity: 0;
+      }
     }
 
-    .digester-swirl {
-      animation: digesterSwirl 15s infinite linear;
-      transform-origin: 500px 375px;
+    @media (max-width: 768px) {
+      .vortex {
+        width: 100px;
+        height: 160px;
+      }
+      .arrow {
+        width: 20px;
+        height: 8px;
+      }
+      .vapor-particle {
+        width: 12px;
+        height: 12px;
+      }
     }
 
-    .digester-particle {
-      fill: url(#slurryGradient);
-      animation: digesterParticleMove 8s infinite linear;
+    /* Vortex Animation Styles */
+    @keyframes vortexRotate {
+      0% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(180deg) scale(1.05); }
+      100% { transform: rotate(360deg) scale(1); }
     }
 
-    @keyframes digesterParticleMove {
+    @keyframes arrowFloat {
       0% { transform: translate(0, 0) rotate(0deg); }
-      25% { transform: translate(100px, -50px) rotate(90deg); }
-      50% { transform: translate(200px, 0) rotate(180deg); }
-      75% { transform: translate(100px, 50px) rotate(270deg); }
-      100% { transform: translate(0, 0) rotate(360deg); }
+      25% { transform: translate(5px, -5px) rotate(5deg); }
+      75% { transform: translate(-5px, 5px) rotate(-5deg); }
+      100% { transform: translate(0, 0) rotate(0deg); }
     }
 
-    .gas-bubble {
-      fill: url(#bubbleGradient);
-      animation: gasBubbleRise 4s infinite;
+    @keyframes vaporRise {
+      0% {
+        transform: translate(0, 0) scale(0.6);
+        opacity: 0.8;
+      }
+      50% {
+        transform: translate(var(--drift-x), calc(var(--rise-height) * -0.5)) scale(1);
+        opacity: 0.6;
+      }
+      100% {
+        transform: translate(calc(var(--drift-x) * 2), calc(var(--rise-height) * -1)) scale(1.2);
+        opacity: 0;
+      }
     }
 
-    @keyframes gasBubbleRise {
-      0% { transform: translateY(0) scale(1); opacity: 0; }
-      20% { opacity: 1; }
-      80% { opacity: 1; }
-      100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
+    .vortex-container {
+      transform-origin: center;
+      animation: vortexRotate 8s linear infinite;
     }
 
-    /* Gas storage animations */
-    .gas-storage-container {
-      clip-path: url(#gasStorageClip);
+    .vortex-surface {
+      fill: url(#vortexWaterGradient);
+      filter: url(#vortexTurbulence);
     }
 
-    .gas-particle {
-      animation: gasParticleFloat 3s infinite;
+    .vortex-highlight {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.3);
+      stroke-width: 2;
+      filter: url(#vortexLighting);
     }
 
-    @keyframes gasParticleFloat {
-      0% { transform: translate(0, 0) scale(1); opacity: 0.3; }
-      50% { transform: translate(10px, -5px) scale(1.2); opacity: 0.8; }
-      100% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+    .vortex-arrow {
+      animation: arrowFloat 3s ease-in-out infinite;
     }
 
-    /* Outlet animations */
-    .outlet-container {
-      clip-path: url(#outletClip);
+    .vapor-particle {
+      --drift-x: 0px;
+      --rise-height: 100px;
+      animation: vaporRise 4s ease-out forwards;
     }
 
-    .slurry-flow {
-      fill: url(#slurryGradient);
-      animation: slurryFlow 2s infinite;
+    /* Vortex patterns */
+    .vortex-pattern {
+      fill: url(#vortexPattern);
     }
 
-    @keyframes slurryFlow {
-      0% { transform: translateY(-20px); opacity: 0; }
-      50% { opacity: 1; }
-      100% { transform: translateY(40px); opacity: 0; }
+    /* Vortex filter */
+    .vortex-filter {
+      filter: url(#vortexDisplace);
     }
 
-    /* Overflow animations */
-    .overflow-container {
-      clip-path: url(#overflowClip);
+    /* Quiz result pie chart styles */
+    #resultPieChart {
+      display: none;
+      margin: 20px auto;
+      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
     }
 
-    .overflow-drip {
-      fill: url(#slurryGradient);
-      animation: overflowDrip 1.5s infinite;
+    #correctSlice {
+      fill: #4CAF50;
+      opacity: 0.9;
+      transition: opacity 0.3s;
     }
 
-    @keyframes overflowDrip {
-      0% { transform: translateY(0) scale(1); opacity: 0; }
-      20% { opacity: 1; }
-      100% { transform: translateY(100px) scale(0.8); opacity: 0; }
+    #incorrectSlice {
+      fill: #dc3545;
+      opacity: 0.9;
+      transition: opacity 0.3s;
+    }
+
+    #correctSlice:hover, #incorrectSlice:hover {
+      opacity: 1;
+    }
+
+    #scoreText {
+      font-size: 28px;
+      fill: #2c3e50;
+      font-weight: bold;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .chart-background {
+      fill: #f8f9fa;
+      stroke: #dee2e6;
+      stroke-width: 2;
+    }
+
+    /* Quiz container and question styles */
+    .quiz-container {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 25px;
+      margin: 30px auto;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      max-width: 800px;
+    }
+
+    .quiz-container h2 {
+      color: #2c3e50;
+      font-size: 24px;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #e9ecef;
+    }
+
+    .quiz-question {
+      background: #f8f9fa;
+      border-left: 4px solid #4CAF50;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      transition: transform 0.2s ease;
+    }
+
+    .quiz-question:hover {
+      transform: translateX(5px);
+    }
+
+    .quiz-question p {
+      color: #2c3e50;
+      font-size: 18px;
+      margin-bottom: 15px;
+      font-weight: 500;
+    }
+
+    .quiz-question label {
+      display: block;
+      padding: 12px 15px;
+      margin: 8px 0;
+      background: #ffffff;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .quiz-question label:hover {
+      background: #e9ecef;
+      border-color: #4CAF50;
+    }
+
+    .quiz-question input[type="radio"] {
+      margin-right: 10px;
+      transform: scale(1.2);
+    }
+
+    #submitQuiz {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 20px 0;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    #submitQuiz:hover {
+      background: #45a049;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    #quizResult {
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 25px;
+      line-height: 1.6;
+    }
+
+    #quizResult.correct {
+      background-color: #e8f5e9;
+      border-left: 4px solid #4CAF50;
+      color: #2e7d32;
+    }
+
+    #quizResult.incorrect {
+      background-color: #ffebee;
+      border-left: 4px solid #dc3545;
+      color: #c62828;
+    }
+
+    /* Enhanced pie chart styles */
+    #resultPieChart {
+      display: none;
+      margin: 30px auto;
+      filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.15));
+      transform: scale(1);
+      transition: transform 0.3s ease;
+    }
+
+    #resultPieChart:hover {
+      transform: scale(1.02);
+    }
+
+    #correctSlice {
+      fill: #4CAF50;
+      opacity: 0.9;
+      transition: all 0.3s ease;
+      stroke: #ffffff;
+      stroke-width: 1;
+    }
+
+    #incorrectSlice {
+      fill: #dc3545;
+      opacity: 0.9;
+      transition: all 0.3s ease;
+      stroke: #ffffff;
+      stroke-width: 1;
+    }
+
+    #correctSlice:hover, #incorrectSlice:hover {
+      opacity: 1;
+      stroke-width: 2;
+    }
+
+    #scoreText {
+      font-size: 32px;
+      fill: #2c3e50;
+      font-weight: bold;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .chart-background {
+      fill: #f8f9fa;
+      stroke: #dee2e6;
+      stroke-width: 2;
+      filter: url(#dropShadow);
+    }
+
+    .chart-label {
+      font-size: 14px;
+      fill: #6c757d;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
   </style>
 </head>
@@ -541,7 +783,21 @@
 
     <div class="simulation-area">
       <svg id="biogasSvg" viewBox="0 0 1000 600">
+        <!-- Add vortex container -->
+        <foreignObject x="200" y="150" width="600" height="450">
+          <div xmlns="http://www.w3.org/1999/xhtml" id="digesterVortex" class="digester-container">
+            <!-- Vortex animation will be added here -->
+          </div>
+        </foreignObject>
         <defs>
+          <!-- Add vortex-specific gradients and filters -->
+          <radialGradient id="vortexGradient" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0%" stop-color="#8B4513"/>
+            <stop offset="100%" stop-color="#5A2D0C"/>
+            <animate attributeName="cx" values="0.5;0.6;0.5;0.4;0.5" dur="4s" repeatCount="indefinite"/>
+            <animate attributeName="cy" values="0.5;0.4;0.5;0.6;0.5" dur="4s" repeatCount="indefinite"/>
+          </radialGradient>
+
           <!-- Existing clip paths -->
           <clipPath id="mixingTankClip">
             <rect x="50" y="250" width="100" height="150" rx="5" ry="5"/>
@@ -568,7 +824,26 @@
             <rect x="910" y="150" width="50" height="150"/>
           </clipPath>
 
-          <!-- Gradients and patterns -->
+          <!-- Vortex patterns -->
+          <pattern id="vortexPattern" width="40" height="40" patternUnits="userSpaceOnUse">
+            <circle cx="20" cy="20" r="5" fill="#8a6d3b" opacity="0.3">
+              <animate attributeName="opacity" values="0.3;0.6;0.3" dur="2s" repeatCount="indefinite"/>
+            </circle>
+          </pattern>
+
+          <radialGradient id="vortexWaterGradient" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0%" stop-color="#8B4513"/>
+            <stop offset="100%" stop-color="#5A2D0C"/>
+            <animate attributeName="cx" values="0.5;0.6;0.5;0.4;0.5" dur="4s" repeatCount="indefinite"/>
+            <animate attributeName="cy" values="0.5;0.4;0.5;0.6;0.5" dur="4s" repeatCount="indefinite"/>
+          </radialGradient>
+
+          <filter id="vortexDisplace">
+            <feTurbulence type="turbulence" baseFrequency="0.01" numOctaves="3" result="turbulence"/>
+            <feDisplacementMap in2="turbulence" in="SourceGraphic" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+          </filter>
+
+          <!-- Existing patterns and gradients -->
           <pattern id="mixingPattern" width="20" height="20" patternUnits="userSpaceOnUse">
             <circle cx="10" cy="10" r="3" fill="#8a6d3b" opacity="0.5"/>
           </pattern>
@@ -586,13 +861,54 @@
             <stop offset="0%" stop-color="#8a6d3b" stop-opacity="0.8"/>
             <stop offset="100%" stop-color="#8a6d3b" stop-opacity="0.4"/>
           </linearGradient>
+
+          <!-- Vortex Animation Definitions -->
+          <filter id="vortexTurbulence">
+            <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="2" seed="1" result="noise"/>
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="20"/>
+          </filter>
+
+          <filter id="vortexLighting">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>
+            <feSpecularLighting in="blur" surfaceScale="5" specularConstant=".75" 
+                              specularExponent="20" lighting-color="#white" result="specular">
+              <fePointLight x="500" y="375" z="200"/>
+            </feSpecularLighting>
+            <feComposite in="SourceGraphic" in2="specular" operator="arithmetic" 
+                        k1="0" k2="1" k3="1" k4="0"/>
+          </filter>
+
+          <!-- Arrow symbol for vortex flow -->
+          <symbol id="vortexArrow" viewBox="-10 -10 20 20">
+            <path d="M-8,-3 L0,-3 L0,-6 L8,0 L0,6 L0,3 L-8,3 Z" fill="#fdd835"/>
+          </symbol>
+
+          <!-- Vapor particle symbol -->
+          <symbol id="vaporParticle" viewBox="-5 -5 10 10">
+            <path d="M-2,2 L0,-2 L2,2 L1,2 L1,0 L-1,0 L-1,2 Z" fill="white"/>
+          </symbol>
+
+          /* Add SVG for pie chart in the defs section */
+          <filter id="dropShadow">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+            <feOffset dx="2" dy="2"/>
+            <feComponentTransfer>
+              <feFuncA type="linear" slope="0.3"/>
+            </feComponentTransfer>
+            <feMerge>
+              <feMergeNode/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
         </defs>
 
         <!-- Animation Layers -->
         <g id="waste-animations" clip-path="url(#intakeChamberClip)"></g>
         <g id="pipe-animations"></g>
         <g id="mixing-animations" clip-path="url(#mixingTankClip)"></g>
-        <g id="digester-animations" clip-path="url(#digesterClip)"></g>
+        <g id="digester-animations" clip-path="url(#digesterClip)" transform="translate(200, 150) scale(0.75)">
+          <!-- Animation elements will be added here by JavaScript -->
+        </g>
         <g id="gas-animations" clip-path="url(#gasStorageClip)"></g>
         <g id="overflow-animations" clip-path="url(#overflowClip)"></g>
         <g id="outlet-animations" clip-path="url(#outletClip)"></g>
@@ -618,6 +934,80 @@
         <text x="210" y="535" text-anchor="start" font-size="16" font-weight="bold">Inlet to Digester</text>
 
         <path id="digester" d="M200 150 L200 600 C200 630 800 630 800 600 L800 150 C800 120 200 120 200 150 Z" fill="#c0c0c0" stroke="black" stroke-linejoin="round"/>
+        
+        <!-- Vortex Animation Group -->
+        <g id="vortexGroup" transform="translate(500, 375)">
+          <!-- Base water circle -->
+          <circle cx="0" cy="0" r="150" fill="url(#vortexGradient)">
+            <animateTransform
+              attributeName="transform"
+              type="rotate"
+              from="0 0 0"
+              to="360 0 0"
+              dur="8s"
+              repeatCount="indefinite"/>
+          </circle>
+          
+          <!-- Vortex spiral -->
+          <path d="M0,0 A75,75 0 1,1 75,75" stroke="#8B4513" stroke-width="20" fill="none" opacity="0.6">
+            <animateTransform
+              attributeName="transform"
+              type="rotate"
+              from="0 0 0"
+              to="360 0 0"
+              dur="4s"
+              repeatCount="indefinite"/>
+          </path>
+          
+          <!-- Rotating arrows -->
+          <g id="arrows">
+            <!-- 12 arrows around the circle -->
+            <g transform="rotate(0)">
+              <path d="M100,0 L120,5 L120,-5 Z" fill="#fdd835"/>
+            </g>
+            <g transform="rotate(30)">
+              <path d="M100,0 L120,5 L120,-5 Z" fill="#fdd835"/>
+            </g>
+            <g transform="rotate(60)">
+              <path d="M100,0 L120,5 L120,-5 Z" fill="#fdd835"/>
+            </g>
+            <g transform="rotate(90)">
+              <path d="M100,0 L120,5 L120,-5 Z" fill="#fdd835"/>
+            </g>
+            <g transform="rotate(120)">
+              <path d="M100,0 L120,5 L120,-5 Z" fill="#fdd835"/>
+            </g>
+            <g transform="rotate(150)">
+              <path d="M100,0 L120,5 L120,-5 Z" fill="#fdd835"/>
+            </g>
+            <g transform="rotate(180)">
+              <path d="M100,0 L120,5 L120,-5 Z" fill="#fdd835"/>
+            </g>
+            <g transform="rotate(210)">
+              <path d="M100,0 L120,5 L120,-5 Z" fill="#fdd835"/>
+            </g>
+            <g transform="rotate(240)">
+              <path d="M100,0 L120,5 L120,-5 Z" fill="#fdd835"/>
+            </g>
+            <g transform="rotate(270)">
+              <path d="M100,0 L120,5 L120,-5 Z" fill="#fdd835"/>
+            </g>
+            <g transform="rotate(300)">
+              <path d="M100,0 L120,5 L120,-5 Z" fill="#fdd835"/>
+            </g>
+            <g transform="rotate(330)">
+              <path d="M100,0 L120,5 L120,-5 Z" fill="#fdd835"/>
+            </g>
+            <animateTransform
+              attributeName="transform"
+              type="rotate"
+              from="0 0 0"
+              to="360 0 0"
+              dur="6s"
+              repeatCount="indefinite"/>
+          </g>
+        </g>
+
         <path id="digesterLiquid" class="liquid-wave" d="M200 600 C200 630 800 630 800 600 L800 350 C800 320 200 320 200 350 Z" fill="#8a6d3b" opacity="0.7" stroke-linejoin="round"/>
         <text x="500" y="375" text-anchor="middle" font-size="22" font-weight="bold">Digester Tank</text>
 
@@ -713,12 +1103,70 @@
         <label><input type="radio" name="q4" value="Fertilizer"> Organic fertilizer</label>
       </div>
 
+      <div class="quiz-question">
+        <p>5. What is the optimal pH range for biogas production?</p>
+        <label><input type="radio" name="q5" value="4-5"> 4-5 (Acidic)</label>
+        <label><input type="radio" name="q5" value="6.5-7.5"> 6.5-7.5 (Neutral)</label>
+        <label><input type="radio" name="q5" value="8-9"> 8-9 (Alkaline)</label>
+      </div>
+
+      <div class="quiz-question">
+        <p>6. How long does it typically take for biogas production to start after initial feeding?</p>
+        <label><input type="radio" name="q6" value="1-2"> 1-2 days</label>
+        <label><input type="radio" name="q6" value="2-4"> 2-4 weeks</label>
+        <label><input type="radio" name="q6" value="2-3"> 2-3 months</label>
+      </div>
+
+      <div class="quiz-question">
+        <p>7. What percentage of methane is typically present in biogas?</p>
+        <label><input type="radio" name="q7" value="30-40"> 30-40%</label>
+        <label><input type="radio" name="q7" value="50-70"> 50-70%</label>
+        <label><input type="radio" name="q7" value="80-90"> 80-90%</label>
+      </div>
+
+      <div class="quiz-question">
+        <p>8. Which of these materials should NOT be added to a biogas digester?</p>
+        <label><input type="radio" name="q8" value="manure"> Animal manure</label>
+        <label><input type="radio" name="q8" value="plastic"> Plastic and synthetic materials</label>
+        <label><input type="radio" name="q8" value="food"> Food waste</label>
+      </div>
+
       <button id="submitQuiz">Check Answers</button>
       <div id="quizResult"></div>
+      
+      <!-- Add pie chart SVG -->
+      <svg id="resultPieChart" width="200" height="200">
+        <defs>
+          <filter id="dropShadow">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+            <feOffset dx="2" dy="2"/>
+            <feComponentTransfer>
+              <feFuncA type="linear" slope="0.3"/>
+            </feComponentTransfer>
+            <feMerge>
+              <feMergeNode/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        <circle cx="100" cy="100" r="95" fill="#f0f0f0" filter="url(#dropShadow)"/>
+        <path id="correctSlice" d="M100,100 L100,5 A95,95 0 0,1 100,195 Z"/>
+        <path id="incorrectSlice" d="M100,100 L100,195 A95,95 0 0,1 100,5 Z"/>
+        <text id="scoreText" x="100" y="100" text-anchor="middle" dy=".3em"></text>
+      </svg>
     </div>
   </div>
 
+  <script src="main.js"></script>
   <script>
+    // Get SVG reference and namespace
+    const svg = document.getElementById('biogasSvg');
+    const SVG_NS = "http://www.w3.org/2000/svg";
+    
+    function createElementSVG(type) {
+      return document.createElementNS(SVG_NS, type);
+    }
+
     const steps = [
       {
         id: 'intakeChamber',
@@ -776,11 +1224,11 @@
       },
       {
         id: 'digester',
-        text: 'Step 7: In the Digester, anaerobic bacteria decompose the organic matter in four stages: hydrolysis, acidogenesis, acetogenesis, and methanogenesis, producing biogas (60-70% methane, 30-40% CO₂) and digestate.',
+        text: 'Step 7: In the Digester, anaerobic bacteria decompose the organic matter in four stages: hydrolysis, acidogenesis, acetogenesis, and methanogenesis, producing biogas (60-70% methane, 30-40% CO₂) and digestate. The vortex mixing action helps maintain uniform temperature and distribution of bacteria.',
         component: {
           title: "Digester Tank",
-          description: "The digester is an airtight container where microorganisms break down organic matter without oxygen. Retention time typically ranges from 15-30 days for mesophilic systems.",
-          facts: "A well-functioning digester can reduce pathogens in manure by up to 90% while preserving nutrients."
+          description: "The digester features a vortex mixing system that creates a rotating flow pattern, ensuring even distribution of bacteria and maintaining optimal temperature. The retention time typically ranges from 15-30 days for mesophilic systems.",
+          facts: "The vortex mixing action helps prevent dead zones and increases biogas production by up to 15% compared to non-mixed systems."
         }
       },
       {
@@ -861,20 +1309,30 @@
       q1: "Methane",
       q2: "Anaerobic",
       q3: "20-45",
-      q4: "Fertilizer"
+      q4: "Fertilizer",
+      q5: "6.5-7.5",
+      q6: "2-4",
+      q7: "50-70",
+      q8: "plastic"
     };
 
     const quizExplanations = {
       q1: "Methane (CH₄) is the primary combustible component of biogas, typically making up 50-75% of the gas mixture.",
       q2: "Anaerobic bacteria thrive in oxygen-free environments and are responsible for breaking down organic matter to produce biogas.",
       q3: "The mesophilic range (20-45°C) is most common for household digesters as it balances gas production with heating requirements.",
-      q4: "The spent slurry is rich in nutrients like nitrogen, phosphorus, and potassium, making it an excellent organic fertilizer."
+      q4: "The spent slurry is rich in nutrients like nitrogen, phosphorus, and potassium, making it an excellent organic fertilizer.",
+      q5: "A neutral pH (6.5-7.5) is optimal for methanogenic bacteria to produce biogas efficiently.",
+      q6: "It typically takes 2-4 weeks for the bacterial population to establish and begin producing significant amounts of biogas.",
+      q7: "Biogas typically contains 50-70% methane, with the remainder being mostly CO₂ and trace gases.",
+      q8: "Plastic and synthetic materials cannot be broken down by bacteria and will accumulate in the digester, reducing its efficiency."
     };
 
     let stepIndex = -1;
     let simulationStarted = false;
     let currentHighlight = null;
-    const svg = document.getElementById('biogasSvg');
+
+    // Initialize vortex animation
+    let vortexAnimation = null;
 
     // ANIMATION FUNCTIONS
     function createIntakeAnimation() {
@@ -947,29 +1405,66 @@
 
     function createDigesterAnimation() {
       const layer = document.getElementById('digester-animations');
-      layer.innerHTML = '';
+      if (!layer) return;
       
-      // Create rotating slurry pattern
-      const slurry = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      slurry.setAttribute('x', '200');
-      slurry.setAttribute('y', '350');
-      slurry.setAttribute('width', '600');
-      slurry.setAttribute('height', '250');
-      slurry.setAttribute('fill', 'url(#digesterPattern)');
-      slurry.classList.add('digester-swirl');
-      layer.appendChild(slurry);
-      
-      // Add rising bubbles
-      for (let i = 0; i < 40; i++) {
-        const bubble = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        bubble.setAttribute('r', 3 + Math.random() * 4);
-        bubble.setAttribute('cx', 250 + Math.random() * 500);
-        bubble.setAttribute('cy', 450 + Math.random() * 100);
-        bubble.setAttribute('fill', 'url(#bubbleGradient)');
-        bubble.classList.add('digester-bubble');
-        bubble.style.animationDelay = `${Math.random() * 4}s`;
-        layer.appendChild(bubble);
+      // Show the vortex group
+      const vortexGroup = document.getElementById('vortexGroup');
+      if (vortexGroup) {
+        vortexGroup.style.display = 'block';
       }
+
+      // Create vapor particles
+      function createVaporParticle() {
+        const vapor = document.createElementNS(SVG_NS, 'path');
+        vapor.setAttribute('d', 'M-5,5 L0,-5 L5,5 L2.5,5 L2.5,0 L-2.5,0 L-2.5,5 Z');
+        vapor.setAttribute('fill', 'rgba(255, 255, 255, 0.7)');
+        
+        // Random position around the circle
+        const angle = Math.random() * Math.PI * 2;
+        const radius = 150;
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+        vapor.setAttribute('transform', `translate(${500 + x}, ${375 + y})`);
+        
+        // Add animations
+        const animate = document.createElementNS(SVG_NS, 'animate');
+        animate.setAttribute('attributeName', 'opacity');
+        animate.setAttribute('from', '0.7');
+        animate.setAttribute('to', '0');
+        animate.setAttribute('dur', '2s');
+        animate.setAttribute('begin', '0s');
+        animate.setAttribute('fill', 'freeze');
+        vapor.appendChild(animate);
+        
+        const animateTransform = document.createElementNS(SVG_NS, 'animateTransform');
+        animateTransform.setAttribute('attributeName', 'transform');
+        animateTransform.setAttribute('type', 'translate');
+        animateTransform.setAttribute('from', `${500 + x} ${375 + y}`);
+        animateTransform.setAttribute('to', `${500 + x} ${275 + y}`);
+        animateTransform.setAttribute('dur', '2s');
+        animateTransform.setAttribute('begin', '0s');
+        animateTransform.setAttribute('fill', 'freeze');
+        vapor.appendChild(animateTransform);
+        
+        layer.appendChild(vapor);
+        
+        // Remove particle after animation
+        setTimeout(() => vapor.remove(), 2000);
+      }
+
+      // Start creating vapor particles
+      const vaporInterval = setInterval(createVaporParticle, 200);
+
+      // Return cleanup function
+      return () => {
+        clearInterval(vaporInterval);
+        if (vortexGroup) {
+          vortexGroup.style.display = 'none';
+        }
+        if (layer) {
+          layer.innerHTML = '';
+        }
+      };
     }
 
     function createPipeAnimation(pipeId) {
@@ -1056,9 +1551,14 @@
 
     function stopAllAnimations() {
       // Clear all animation layers
-      ['waste-animations', 'pipe-animations', 'bubble-animations', 'particle-animations', 'overflow-animations'].forEach(id => {
-        const layer = document.getElementById(id);
-        if (layer) layer.innerHTML = '';
+      document.querySelectorAll('[id$="-animations"]').forEach(layer => {
+        const element = document.getElementById(layer.id.replace('-animations', ''));
+        if (element && element.dataset.cleanup) {
+          // Call cleanup function if it exists
+          element.dataset.cleanup();
+          delete element.dataset.cleanup;
+        }
+        layer.innerHTML = '';
       });
       
       // Reset gas fill
@@ -1076,43 +1576,63 @@
     }
 
     function showStep(index) {
+      console.log('Showing step:', index);
       if (index >= 0 && index < steps.length) {
         stepIndex = index;
         const step = steps[stepIndex];
+        console.log('Current step:', step.id);
         
-        stopAllAnimations();
+        // Clear all animations
+        document.querySelectorAll('[id$="-animations"]').forEach(layer => {
+          layer.innerHTML = '';
+        });
+        
+        // Remove previous highlights
+        document.querySelectorAll('.highlight').forEach(el => {
+          el.classList.remove('highlight');
+        });
+        
         const element = document.getElementById(step.id);
-        if (element) element.classList.add('highlight');
-        currentHighlight = element;
-        
-        // Start appropriate animation
-        switch(step.id) {
-          case 'intakeChamber': 
-            createIntakeAnimation();
-            break;
-          case 'mixingTank':
-            createMixingAnimation();
-            break;
-          case 'digester':
-            createDigesterAnimation();
-            break;
-          case 'gasStorageTankGroup':
-            createGasStorageAnimation();
-            break;
-          case 'outlet':
-            createOutletAnimation();
-            break;
-          case 'overflowTank':
-            createOverflowAnimation();
-            break;
-          case 'intakePipe':
-          case 'inletPipe':
-          case 'outletPipe':
-          case 'overflowPipe':
-          case 'gasConnectorPipe':
-          case 'gasPipe':
-            createPipeAnimation(step.id);
-            break;
+        if (element) {
+          element.classList.add('highlight');
+          
+          // Start appropriate animation
+          switch(step.id) {
+            case 'digester':
+              // Clear any existing animations first
+              const digesterLayer = document.getElementById('digester-animations');
+              if (digesterLayer) {
+                digesterLayer.innerHTML = '';
+                // Initialize the vortex animation
+                const cleanup = createDigesterAnimation();
+                // Store cleanup function for later
+                element.dataset.cleanup = cleanup;
+              }
+              break;
+            case 'intakeChamber':
+              createIntakeAnimation();
+              break;
+            case 'mixingTank':
+              createMixingAnimation();
+              break;
+            case 'gasStorageTankGroup':
+              createGasStorageAnimation();
+              break;
+            case 'outlet':
+              createOutletAnimation();
+              break;
+            case 'overflowTank':
+              createOverflowAnimation();
+              break;
+            case 'intakePipe':
+            case 'inletPipe':
+            case 'outletPipe':
+            case 'overflowPipe':
+            case 'gasConnectorPipe':
+            case 'gasPipe':
+              createPipeAnimation(step.id);
+              break;
+          }
         }
         
         // Update text and progress
@@ -1147,24 +1667,39 @@
       }
     }
 
-    function resetSimulation() {
-      simulationStarted = false;
-      stepIndex = -1;
-      stopAllAnimations();
-      document.getElementById('description').innerHTML =
-        'Click "Start Simulation" to begin the step-by-step explanation of how a biogas digester works.';
-      document.getElementById('componentDetails').style.display = 'none';
-      document.getElementById('progressBar').style.width = '0%';
-      document.getElementById('startSimulation').disabled = false;
-      document.getElementById('prevStep').disabled = true;
-      document.getElementById('nextStep').disabled = true;
-      document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
-      document.getElementById('quizResult').style.display = 'none';
+    function updatePieChart(score, total) {
+      const pieChart = document.getElementById('resultPieChart');
+      const correctSlice = document.getElementById('correctSlice');
+      const incorrectSlice = document.getElementById('incorrectSlice');
+      const scoreText = document.getElementById('scoreText');
+      
+      pieChart.style.display = 'block';
+      
+      const percentage = (score / total) * 100;
+      const angle = (percentage / 100) * 360;
+      
+      // Create the arc paths
+      if (score === 0) {
+        correctSlice.setAttribute('d', '');
+        incorrectSlice.setAttribute('d', 'M100,100 L100,5 A95,95 0 1,1 100,5 Z');
+      } else if (score === total) {
+        correctSlice.setAttribute('d', 'M100,100 L100,5 A95,95 0 1,1 100,5 Z');
+        incorrectSlice.setAttribute('d', '');
+      } else {
+        const rad = (angle - 90) * Math.PI / 180;
+        const x = 100 + 95 * Math.cos(rad);
+        const y = 100 + 95 * Math.sin(rad);
+        correctSlice.setAttribute('d', `M100,100 L100,5 A95,95 0 ${angle > 180 ? 1 : 0},1 ${x},${y} Z`);
+        incorrectSlice.setAttribute('d', `M100,100 L${x},${y} A95,95 0 ${angle > 180 ? 0 : 1},0 100,5 Z`);
+      }
+      
+      scoreText.textContent = `${score}/${total}`;
     }
 
     function checkQuiz() {
       let score = 0;
       const results = [];
+      const total = Object.keys(quizAnswers).length;
 
       for (const [question, correctAnswer] of Object.entries(quizAnswers)) {
         const selected = document.querySelector(`input[name="${question}"]:checked`);
@@ -1182,10 +1717,64 @@
 
       const resultDiv = document.getElementById('quizResult');
       resultDiv.innerHTML = results.join('<br><br>');
-      resultDiv.className = score === Object.keys(quizAnswers).length ? 'correct' : 'incorrect';
+      resultDiv.className = score === total ? 'correct' : 'incorrect';
       resultDiv.style.display = 'block';
-      resultDiv.innerHTML += `<br><br><strong>You scored ${score} out of ${Object.keys(quizAnswers).length}.</strong>`;
+      
+      // Update pie chart
+      updatePieChart(score, total);
+      
       resultDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function resetSimulation() {
+      // Reset simulation state
+      simulationStarted = false;
+      stepIndex = -1;
+      
+      // Stop all animations
+      stopAllAnimations();
+      
+      // Hide vortex group and reset its state
+      const vortexGroup = document.getElementById('vortexGroup');
+      if (vortexGroup) {
+        vortexGroup.style.display = 'none';
+      }
+      
+      // Reset all animation layers
+      document.querySelectorAll('[id$="-animations"]').forEach(layer => {
+        layer.innerHTML = '';
+      });
+      
+      // Reset description and components
+      document.getElementById('description').innerHTML =
+        'Click "Start Simulation" to begin the step-by-step explanation of how a biogas digester works.';
+      document.getElementById('componentDetails').style.display = 'none';
+      document.getElementById('progressBar').style.width = '0%';
+      
+      // Reset buttons
+      document.getElementById('startSimulation').disabled = false;
+      document.getElementById('prevStep').disabled = true;
+      document.getElementById('nextStep').disabled = true;
+      
+      // Reset quiz
+      document.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.checked = false;
+      });
+      document.getElementById('quizResult').style.display = 'none';
+      document.getElementById('resultPieChart').style.display = 'none';
+      
+      // Remove any highlights
+      document.querySelectorAll('.highlight').forEach(el => {
+        el.classList.remove('highlight');
+      });
+      
+      // Reset any active components
+      document.querySelectorAll('.component-active').forEach(el => {
+        el.classList.remove('component-active');
+      });
+      
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // Initialize
