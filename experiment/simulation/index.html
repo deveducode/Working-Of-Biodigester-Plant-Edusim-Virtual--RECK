@@ -1,13 +1,1201 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<!-- Add CSS at the head of HTML file -->
-    <link rel="stylesheet" href="./css/main.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Biogas Digester Simulation</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f7f4;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+      color: #333;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #2a5934;
+      margin-bottom: 20px;
+    }
+    .simulation-area {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+    #biogasSvg {
+      width: 100%;
+      max-width: 800px;
+      height: auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      position: relative;
+    }
+    .info-panel {
+      flex: 1;
+      min-width: 300px;
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      text-align: left;
+    }
+    #description {
+      font-size: 1.1em;
+      line-height: 1.6;
+      min-height: 120px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      border-left: 4px solid #4CAF50;
+    }
+    .component-details {
+      margin-top: 15px;
+      padding: 10px;
+      background: #e9f5e9;
+      border-radius: 6px;
+      display: none;
+    }
+    .controls {
+      margin: 20px 0;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    button:hover {
+      background-color: #3e8e41;
+      transform: translateY(-2px);
+    }
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    /* ANIMATION STYLES */
+    .highlight {
+      stroke: #e63946;
+      stroke-width: 3px;
+      animation: pulse 0.8s infinite;
+    }
+    @keyframes pulse {
+      0% { stroke-opacity: 0.6; stroke-width: 2px; }
+      50% { stroke-opacity: 1; stroke-width: 4px; }
+      100% { stroke-opacity: 0.6; stroke-width: 2px; }
+    }
+    
+    .waste-particle {
+      animation: wasteFall 1.5s infinite;
+    }
+    @keyframes wasteFall {
+      0% { transform: translateY(-20px); opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { transform: translateY(60px); opacity: 0; }
+    }
+    
+    .pipe-particle {
+      animation: pipeFlow 2s infinite linear;
+    }
+    @keyframes pipeFlow {
+      0% { transform: translateY(-10px); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(60px); opacity: 0; }
+    }
+    
+    .pipe-particle-horizontal {
+      animation: pipeFlowHorizontal 2s infinite linear;
+    }
+    @keyframes pipeFlowHorizontal {
+      0% { transform: translateX(-10px); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateX(60px); opacity: 0; }
+    }
+    
+    .bubble {
+      animation: bubbleRise 3s infinite;
+    }
+    @keyframes bubbleRise {
+      0% { transform: translateY(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-150px); opacity: 0; }
+    }
+    
+    .gas-fill-animate {
+      animation: gasFill 2s infinite alternate;
+    }
+    @keyframes gasFill {
+      0% { opacity: 0.7; transform: scaleY(1); }
+      100% { opacity: 1; transform: scaleY(1.05); }
+    }
+    
+    .drip {
+      animation: dripFall 1.5s infinite;
+    }
+    @keyframes dripFall {
+      0% { transform: translateY(0); opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { transform: translateY(50px); opacity: 0; }
+    }
+    
+    .swirl {
+      animation: swirl 6s infinite linear;
+      transform-origin: 100px 325px;
+    }
+    @keyframes swirl {
+      0% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(180deg) scale(1.1); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+    
+    .progress-container {
+      width: 100%;
+      background-color: #ddd;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+    .progress-bar {
+      height: 10px;
+      background-color: #4CAF50;
+      border-radius: 5px;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* New animation styles */
+    .digester-swirl {
+      animation: digesterSwirl 15s infinite linear;
+      transform-origin: 500px 375px;
+    }
+    @keyframes digesterSwirl {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .gas-arrow {
+      animation: gasArrowRise 4s infinite;
+    }
+    @keyframes gasArrowRise {
+      0% { transform: translateY(0); opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { transform: translateY(-100px); opacity: 0; }
+    }
+
+    .mixing-bubble {
+      animation: mixingBubbleRise 2.5s infinite;
+    }
+    @keyframes mixingBubbleRise {
+      0% { transform: translateY(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-80px); opacity: 0; }
+    }
+
+    .digester-bubble {
+      animation: digesterBubbleRise 5s infinite;
+    }
+    @keyframes digesterBubbleRise {
+      0% { transform: translateY(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-200px); opacity: 0; }
+    }
+
+    .liquid-wave {
+      animation: liquidWave 8s infinite ease-in-out;
+    }
+    @keyframes liquidWave {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .gas-bubble {
+      animation: gasBubbleRise 4s infinite;
+    }
+    @keyframes gasBubbleRise {
+      0% { transform: translateY(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-100px); opacity: 0; }
+    }
+
+    .slurry-particle {
+      animation: slurryFlow 3s infinite;
+    }
+    @keyframes slurryFlow {
+      0% { transform: translateY(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(60px); opacity: 0; }
+    }
+
+    /* Enhanced waste animation styles */
+    .waste-item {
+      animation: wasteDrop 2s infinite;
+      transform-origin: center;
+    }
+    
+    @keyframes wasteDrop {
+      0% { transform: translateY(-20px) rotate(0deg); opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { transform: translateY(60px) rotate(360deg); opacity: 0; }
+    }
+    
+    .waste-container {
+      pointer-events: none;
+      clip-path: url(#intakeChamberClip);
+    }
+
+    .banana-peel { fill: #ffd700; }
+    .apple { fill: #dc143c; }
+    .grass-cutting { fill: #228b22; }
+
+    /* Mixing tank animation styles */
+    .mixing-waste-item {
+      animation-iteration-count: infinite;
+      animation-timing-function: linear;
+    }
+    
+    @keyframes mixing-swirl-path-1 {
+      0% { transform: translate(60px, 260px) rotate(0deg); }
+      25% { transform: translate(80px, 280px) rotate(90deg); }
+      50% { transform: translate(60px, 340px) rotate(180deg); }
+      75% { transform: translate(50px, 300px) rotate(270deg); }
+      100% { transform: translate(60px, 260px) rotate(360deg); }
+    }
+
+    @keyframes mixing-swirl-path-2 {
+      0% { transform: translate(80px, 300px) rotate(0deg); }
+      25% { transform: translate(60px, 330px) rotate(90deg); }
+      50% { transform: translate(90px, 270px) rotate(180deg); }
+      75% { transform: translate(120px, 290px) rotate(270deg); }
+      100% { transform: translate(80px, 300px) rotate(360deg); }
+    }
+
+    @keyframes mixing-swirl-path-3 {
+      0% { transform: translate(70px, 330px) rotate(0deg); }
+      20% { transform: translate(90px, 270px) rotate(72deg); }
+      40% { transform: translate(120px, 310px) rotate(144deg); }
+      60% { transform: translate(50px, 290px) rotate(216deg); }
+      80% { transform: translate(100px, 260px) rotate(288deg); }
+      100% { transform: translate(70px, 330px) rotate(360deg); }
+    }
+
+    /* Clip path for mixing tank contents */
+    .mixing-tank-contents {
+      clip-path: url(#mixingTankClip);
+    }
+
+    /* Quiz result styles */
+    #quizResult {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 5px;
+      display: none;
+    }
+    #quizResult.correct {
+      background-color: #e8f5e9;
+      border-left: 4px solid #4CAF50;
+    }
+    #quizResult.incorrect {
+      background-color: #ffebee;
+      border-left: 4px solid #f44336;
+    }
+
+    /* Enhanced Animation Styles */
+    .component-glow {
+      filter: drop-shadow(0 0 8px rgba(76, 175, 80, 0.8));
+      transition: filter 0.3s ease;
+    }
+
+    .component-active {
+      stroke: #4CAF50;
+      stroke-width: 3px;
+      animation: activeComponent 1.5s infinite;
+    }
+
+    @keyframes activeComponent {
+      0% { stroke-opacity: 0.4; }
+      50% { stroke-opacity: 1; }
+      100% { stroke-opacity: 0.4; }
+    }
+
+    .mixing-swirl {
+      animation: mixingSwirl 4s infinite linear;
+      transform-origin: center;
+    }
+
+    @keyframes mixingSwirl {
+      0% { transform: rotate(0deg) scale(0.8); }
+      50% { transform: rotate(180deg) scale(1); }
+      100% { transform: rotate(360deg) scale(0.8); }
+    }
+
+    .gas-rise {
+      animation: gasRise 3s infinite;
+    }
+
+    @keyframes gasRise {
+      0% { transform: translateY(0) scale(1); opacity: 0; }
+      50% { transform: translateY(-30px) scale(1.2); opacity: 1; }
+      100% { transform: translateY(-60px) scale(1); opacity: 0; }
+    }
+
+    .storage-pulse {
+      animation: storagePulse 2s infinite alternate;
+    }
+
+    @keyframes storagePulse {
+      0% { transform: scale(1); opacity: 0.7; }
+      100% { transform: scale(1.05); opacity: 1; }
+    }
+
+    .slurry-flow {
+      animation: slurryFlow 2s infinite;
+    }
+
+    @keyframes slurryFlow {
+      0% { transform: translateY(0); opacity: 0; }
+      50% { transform: translateY(30px); opacity: 1; }
+      100% { transform: translateY(60px); opacity: 0; }
+    }
+
+    .overflow-drip {
+      animation: overflowDrip 1s infinite;
+    }
+
+    @keyframes overflowDrip {
+      0% { transform: translateY(0) scale(1); opacity: 1; }
+      100% { transform: translateY(40px) scale(0.8); opacity: 0; }
+    }
+
+    .tooltip {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 8px;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      pointer-events: none;
+      transition: opacity 0.3s;
+      z-index: 1000;
+    }
+
+    /* Enhanced Animation Styles */
+    .component-glow {
+      filter: drop-shadow(0 0 8px rgba(76, 175, 80, 0.8));
+      transition: filter 0.3s ease;
+    }
+
+    .component-active {
+      stroke: #4CAF50;
+      stroke-width: 3px;
+      animation: activeComponent 1.5s infinite;
+    }
+
+    @keyframes activeComponent {
+      0% { stroke-opacity: 0.4; }
+      50% { stroke-opacity: 1; }
+      100% { stroke-opacity: 0.4; }
+    }
+
+    /* Mixing tank animations */
+    .mixing-container {
+      clip-path: url(#mixingTankClip);
+    }
+
+    .mixing-swirl {
+      animation: mixingSwirl 4s infinite linear;
+      transform-origin: 100px 325px;
+    }
+
+    @keyframes mixingSwirl {
+      0% { transform: rotate(0deg) scale(0.8); }
+      50% { transform: rotate(180deg) scale(1); }
+      100% { transform: rotate(360deg) scale(0.8); }
+    }
+
+    .mixing-bubble {
+      fill: url(#bubbleGradient);
+      animation: mixingBubbleRise 2s infinite;
+    }
+
+    @keyframes mixingBubbleRise {
+      0% { transform: translateY(20px); opacity: 0; }
+      50% { opacity: 1; }
+      100% { transform: translateY(-20px); opacity: 0; }
+    }
+
+    /* Digester animations */
+    .digester-container {
+      clip-path: url(#digesterClip);
+    }
+
+    .digester-swirl {
+      animation: digesterSwirl 15s infinite linear;
+      transform-origin: 500px 375px;
+    }
+
+    .digester-particle {
+      fill: url(#slurryGradient);
+      animation: digesterParticleMove 8s infinite linear;
+    }
+
+    @keyframes digesterParticleMove {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      25% { transform: translate(100px, -50px) rotate(90deg); }
+      50% { transform: translate(200px, 0) rotate(180deg); }
+      75% { transform: translate(100px, 50px) rotate(270deg); }
+      100% { transform: translate(0, 0) rotate(360deg); }
+    }
+
+    .gas-bubble {
+      fill: url(#bubbleGradient);
+      animation: gasBubbleRise 4s infinite;
+    }
+
+    @keyframes gasBubbleRise {
+      0% { transform: translateY(0) scale(1); opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
+    }
+
+    /* Gas storage animations */
+    .gas-storage-container {
+      clip-path: url(#gasStorageClip);
+    }
+
+    .gas-particle {
+      animation: gasParticleFloat 3s infinite;
+    }
+
+    @keyframes gasParticleFloat {
+      0% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+      50% { transform: translate(10px, -5px) scale(1.2); opacity: 0.8; }
+      100% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+    }
+
+    /* Outlet animations */
+    .outlet-container {
+      clip-path: url(#outletClip);
+    }
+
+    .slurry-flow {
+      fill: url(#slurryGradient);
+      animation: slurryFlow 2s infinite;
+    }
+
+    @keyframes slurryFlow {
+      0% { transform: translateY(-20px); opacity: 0; }
+      50% { opacity: 1; }
+      100% { transform: translateY(40px); opacity: 0; }
+    }
+
+    /* Overflow animations */
+    .overflow-container {
+      clip-path: url(#overflowClip);
+    }
+
+    .overflow-drip {
+      fill: url(#slurryGradient);
+      animation: overflowDrip 1.5s infinite;
+    }
+
+    @keyframes overflowDrip {
+      0% { transform: translateY(0) scale(1); opacity: 0; }
+      20% { opacity: 1; }
+      100% { transform: translateY(100px) scale(0.8); opacity: 0; }
+    }
+  </style>
 </head>
 <body>
-		<!-- Your code goes here-->
+  <div class="container">
+    <h1>Biogas Digester Interactive Simulation</h1>
 
-	<!-- Add JS at the bottom of HTML file --> 
-        <script src="./js/main.js"></script>
+    <div class="progress-container">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="simulation-area">
+      <svg id="biogasSvg" viewBox="0 0 1000 600">
+        <defs>
+          <!-- Existing clip paths -->
+          <clipPath id="mixingTankClip">
+            <rect x="50" y="250" width="100" height="150" rx="5" ry="5"/>
+          </clipPath>
+          
+          <clipPath id="digesterClip">
+            <path d="M200 150 L200 600 C200 630 800 630 800 600 L800 150 C800 120 200 120 200 150 Z"/>
+          </clipPath>
+
+          <!-- Add new clip paths -->
+          <clipPath id="intakeChamberClip">
+            <rect x="50" y="100" width="100" height="80"/>
+          </clipPath>
+
+          <clipPath id="gasStorageClip">
+            <path d="M 300 50 A 40 40 0 0 1 340 10 L 660 10 A 40 40 0 0 1 700 50 L 700 50 A 40 40 0 0 1 660 90 L 340 90 A 40 40 0 0 1 300 50 Z"/>
+          </clipPath>
+
+          <clipPath id="outletClip">
+            <rect x="850" y="450" width="50" height="100"/>
+          </clipPath>
+
+          <clipPath id="overflowClip">
+            <rect x="910" y="150" width="50" height="150"/>
+          </clipPath>
+
+          <!-- Gradients and patterns -->
+          <pattern id="mixingPattern" width="20" height="20" patternUnits="userSpaceOnUse">
+            <circle cx="10" cy="10" r="3" fill="#8a6d3b" opacity="0.5"/>
+          </pattern>
+
+          <pattern id="digesterPattern" width="40" height="40" patternUnits="userSpaceOnUse">
+            <circle cx="20" cy="20" r="5" fill="#8a6d3b" opacity="0.3"/>
+          </pattern>
+
+          <radialGradient id="bubbleGradient">
+            <stop offset="0%" stop-color="white" stop-opacity="0.8"/>
+            <stop offset="100%" stop-color="white" stop-opacity="0.2"/>
+          </radialGradient>
+
+          <linearGradient id="slurryGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#8a6d3b" stop-opacity="0.8"/>
+            <stop offset="100%" stop-color="#8a6d3b" stop-opacity="0.4"/>
+          </linearGradient>
+        </defs>
+
+        <!-- Animation Layers -->
+        <g id="waste-animations" clip-path="url(#intakeChamberClip)"></g>
+        <g id="pipe-animations"></g>
+        <g id="mixing-animations" clip-path="url(#mixingTankClip)"></g>
+        <g id="digester-animations" clip-path="url(#digesterClip)"></g>
+        <g id="gas-animations" clip-path="url(#gasStorageClip)"></g>
+        <g id="overflow-animations" clip-path="url(#overflowClip)"></g>
+        <g id="outlet-animations" clip-path="url(#outletClip)"></g>
+
+        <!-- Main Components -->
+        <rect id="intakeChamber" x="50" y="100" width="100" height="80" fill="#909090" stroke="black"/>
+        <text x="100" y="90" text-anchor="middle" font-weight="bold" font-size="18">Intake Chamber</text>
+        
+        <path id="intakePipe" d="M100 180 L100 250" fill="none" stroke="#607d8b" stroke-width="10" stroke-linecap="round"/>
+        <text x="50" y="215" text-anchor="start" font-size="16" font-weight="bold">Feed Pipe</text>
+
+        <rect id="mixingTank" x="50" y="250" width="100" height="150" fill="#a0a0a0" stroke="black" stroke-linejoin="round"/>
+        <text x="100" y="240" text-anchor="middle" font-weight="bold" font-size="18">Mixing Tank</text>
+        <rect x="50" y="250" width="100" height="150" fill="#8a6d3b" opacity="0.7" rx="5" stroke-linejoin="round"/>
+
+        <path id="inletPipeMixerToChamber" d="M100 400 V520 H150" fill="none" stroke="#607d8b" stroke-width="10" stroke-linecap="round"/>
+        <text x="100" y="430" text-anchor="middle" font-size="16" font-weight="bold">Inlet Pipe</text>
+
+        <rect id="inlet" x="150" y="470" width="50" height="100" fill="#b0b0b0" stroke="black" stroke-linejoin="round"/>
+        <text x="175" y="460" text-anchor="middle" font-weight="bold" font-size="18">Inlet Chamber</text>
+
+        <path id="inletPipe" d="M200 520 L200 550" fill="none" stroke="#607d8b" stroke-width="5" stroke-linecap="round"/>
+        <text x="210" y="535" text-anchor="start" font-size="16" font-weight="bold">Inlet to Digester</text>
+
+        <path id="digester" d="M200 150 L200 600 C200 630 800 630 800 600 L800 150 C800 120 200 120 200 150 Z" fill="#c0c0c0" stroke="black" stroke-linejoin="round"/>
+        <path id="digesterLiquid" class="liquid-wave" d="M200 600 C200 630 800 630 800 600 L800 350 C800 320 200 320 200 350 Z" fill="#8a6d3b" opacity="0.7" stroke-linejoin="round"/>
+        <text x="500" y="375" text-anchor="middle" font-size="22" font-weight="bold">Digester Tank</text>
+
+        <g id="gasStorageTankGroup">
+          <path d="M 300 50 A 40 40 0 0 1 340 10 L 660 10 A 40 40 0 0 1 700 50 L 700 50 A 40 40 0 0 1 660 90 L 340 90 A 40 40 0 0 1 300 50 Z"
+                fill="#4CAF50" stroke="black" stroke-width="2" stroke-linejoin="round"/>
+          <rect id="gasFill" x="340" y="50" width="320" height="0" fill="#66BB6A" rx="20" ry="20" opacity="0.7"/>
+
+          <rect x="490" y="-20" width="20" height="20" fill="#3e8e41" rx="3" ry="3" stroke-linejoin="round"/>
+          <path d="M495 -25 Q488 -40 495 -45 Q502 -40 505 -25 Z" fill="#66BB6A" stroke-linejoin="round"/>
+          <path d="M505 -25 Q512 -40 505 -45 Q498 -40 505 -25 Z" fill="#66BB6A" stroke-linejoin="round"/>
+
+          <rect x="420" y="95" width="30" height="10" fill="#3e8e41" rx="3" ry="3" stroke-linejoin="round"/>
+          <rect x="550" y="95" width="30" height="10" fill="#3e8e3b" rx="3" ry="3" stroke-linejoin="round"/>
+
+          <line x1="670" y1="35" x2="690" y2="35" stroke="#333" stroke-width="2" stroke-linecap="round"/>
+          <line x1="670" y1="65" x2="690" y2="65" stroke="#333" stroke-width="2" stroke-linecap="round"/>
+        </g>
+
+        <text x="500" y="0" text-anchor="middle" font-weight="bold" fill="black" font-size="18">Gas Storage Tank</text>
+
+        <path id="gasConnectorPipe" d="M500 150 L500 50" fill="none" stroke="#607d8b" stroke-width="10" stroke-linecap="round"/>
+        <text x="500" y="120" text-anchor="middle" font-size="16" font-weight="bold">Gas Connector</text>
+
+        <path id="gasPipe" d="M700 50 H730 V20" fill="none" stroke="#607d8b" stroke-width="10" stroke-linecap="round"/>
+        <text x="730" y="10" text-anchor="middle" font-size="16" font-weight="bold">Gas Pipe to Household</text>
+
+        <rect id="outlet" x="850" y="450" width="50" height="100" fill="#b0b0b0" stroke="black" stroke-linejoin="round"/>
+        <text x="875" y="440" text-anchor="middle" font-weight="bold" font-size="18">Outlet Tank</text>
+
+        <path id="outletPipeDigesterToTank" d="M800 550 V500 H850" fill="none" stroke="#607d8b" stroke-width="10" stroke-linecap="round"/>
+        <text x="825" y="480" text-anchor="middle" font-size="16" font-weight="bold">Outlet Pipe</text>
+
+        <rect id="overflowTank" x="910" y="150" width="50" height="150" fill="#a0a0a0" stroke="black" stroke-linejoin="round"/>
+        <text x="935" y="140" text-anchor="middle" font-weight="bold" font-size="18">Overflow Chamber</text>
+
+        <path id="overflowPipe" d="M900 475 H935 V300 V225" fill="none" stroke="#607d8b" stroke-width="10" stroke-linecap="round"/>
+        <text x="935" y="80" text-anchor="middle" font-size="16" font-weight="bold">Overflow Pipe</text>
+
+        <path id="overflowOutletPipe" d="M960 225 H980" fill="none" stroke="#607d8b" stroke-width="10" stroke-linecap="round"/>
+        <text x="970" y="240" text-anchor="start" font-size="16" font-weight="bold">Overflow Outlet</text>
+      </svg>
+
+      <div class="info-panel">
+        <h2>Process Explanation</h2>
+        <div id="description">
+          Click "Start Simulation" to begin the step-by-step explanation of how a biogas digester works.
+        </div>
+        <div id="componentDetails" class="component-details">
+          <h3 id="componentTitle">Component Name</h3>
+          <p id="componentDescription">Detailed information about this component will appear here.</p>
+          <div class="fact-box" id="componentFacts">
+            <strong>Did you know?</strong> Interesting facts about this component.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="startSimulation">Start Simulation</button>
+      <button id="prevStep" disabled>Previous Step</button>
+      <button id="nextStep" disabled>Next Step</button>
+      <button id="resetSimulation">Reset Simulation</button>
+    </div>
+
+    <div class="quiz-container">
+      <h2>Test Your Knowledge</h2>
+      <div class="quiz-question">
+        <p>1. What is the primary gas produced in a biogas digester?</p>
+        <label><input type="radio" name="q1" value="Oxygen"> Oxygen</label>
+        <label><input type="radio" name="q1" value="Carbon Dioxide"> Carbon Dioxide</label>
+        <label><input type="radio" name="q1" value="Methane"> Methane</label>
+      </div>
+
+      <div class="quiz-question">
+        <p>2. What type of bacteria is responsible for the decomposition in the digester?</p>
+        <label><input type="radio" name="q2" value="Aerobic"> Aerobic (needs oxygen)</label>
+        <label><input type="radio" name="q2" value="Anaerobic"> Anaerobic (oxygen-free)</label>
+        <label><input type="radio" name="q2" value="Fungal"> Fungal</label>
+      </div>
+
+      <div class="quiz-question">
+        <p>3. What is the ideal temperature range for biogas production?</p>
+        <label><input type="radio" name="q3" value="0-20"> 0-20°C (psychrophilic)</label>
+        <label><input type="radio" name="q3" value="20-45"> 20-45°C (mesophilic)</label>
+        <label><input type="radio" name="q3" value="45-60"> 45-60°C (thermophilic)</label>
+      </div>
+
+      <div class="quiz-question">
+        <p>4. What can the spent slurry be used for?</p>
+        <label><input type="radio" name="q4" value="Waste"> It's just waste</label>
+        <label><input type="radio" name="q4" value="Fuel"> Can be used as fuel</label>
+        <label><input type="radio" name="q4" value="Fertilizer"> Organic fertilizer</label>
+      </div>
+
+      <button id="submitQuiz">Check Answers</button>
+      <div id="quizResult"></div>
+    </div>
+  </div>
+
+  <script>
+    const steps = [
+      {
+        id: 'intakeChamber',
+        text: 'Step 1: Organic waste is first collected in the elevated Intake Chamber where preliminary sorting and preparation occurs before being fed to the Mixing Tank.',
+        component: {
+          title: "Intake Chamber",
+          description: "The elevated intake chamber allows for gravity feeding to the mixing tank and provides a space for initial waste preparation and quality control.",
+          facts: "An elevated intake helps prevent backflow and maintains hygienic separation between raw materials and processing areas."
+        }
+      },
+      {
+        id: 'intakePipe',
+        text: 'Step 2: The prepared slurry flows into the Mixing Tank through the Feed Pipe. This ensures a continuous supply of material for digestion.',
+        component: {
+          title: "Feed Pipe",
+          description: "The feed pipe transports the prepared organic slurry from the intake chamber to the mixing tank. Its design ensures a smooth, consistent flow.",
+          facts: "Proper flow rate in the feed pipe is crucial for maintaining optimal conditions in the digester."
+        }
+      },
+      {
+        id: 'mixingTank',
+        text: 'Step 3: Organic waste (like animal manure or plant material) is mixed with water in the Mixing Tank to create slurry with about 10-15% solid content.',
+        component: {
+          title: "Mixing Tank",
+          description: "The mixing tank is where organic materials are combined with water to create the right consistency for digestion. The typical ratio is 1:1 (manure to water) by weight.",
+          facts: "Proper mixing ensures uniform digestion and prevents scum formation in the digester."
+        }
+      },
+      {
+        id: 'inletPipeMixerToChamber',
+        text: 'Step 4: The prepared slurry flows into the Inlet Chamber through the Inlet Pipe. This chamber helps maintain a constant feed to the digester.',
+        component: {
+          title: "Inlet Pipe",
+          description: "This pipe connects the mixing tank to the inlet chamber, ensuring a controlled and steady flow of slurry into the digester system.",
+          facts: "A consistent feed rate is vital for stable biogas production and preventing system imbalances."
+        }
+      },
+      {
+        id: 'inlet',
+        text: 'Step 5: The Inlet Chamber acts as a buffer, receiving slurry and preparing it for entry into the main digester. It helps prevent air from entering the anaerobic environment.',
+        component: {
+          title: "Inlet Chamber",
+          description: "The inlet chamber serves as a buffer between the mixing tank and digester, allowing for controlled feeding and preventing air from entering the anaerobic digester.",
+          facts: "Some systems use hydraulic pressure from new slurry to push out digested material through the outlet."
+        }
+      },
+      {
+        id: 'inletPipe',
+        text: 'Step 6: The slurry enters the Digester Tank through a submerged passage. This design prevents gas from escaping back through the inlet.',
+        component: {
+          title: "Inlet to Digester Pipe",
+          description: "The submerged inlet pipe creates a liquid seal that prevents biogas from escaping back through the feed system while allowing new slurry to enter.",
+          facts: "The hydraulic pressure created by new slurry entering helps circulate material in the digester."
+        }
+      },
+      {
+        id: 'digester',
+        text: 'Step 7: In the Digester, anaerobic bacteria decompose the organic matter in four stages: hydrolysis, acidogenesis, acetogenesis, and methanogenesis, producing biogas (60-70% methane, 30-40% CO₂) and digestate.',
+        component: {
+          title: "Digester Tank",
+          description: "The digester is an airtight container where microorganisms break down organic matter without oxygen. Retention time typically ranges from 15-30 days for mesophilic systems.",
+          facts: "A well-functioning digester can reduce pathogens in manure by up to 90% while preserving nutrients."
+        }
+      },
+      {
+        id: 'gasConnectorPipe',
+        text: 'Step 8: Biogas bubbles rise to the top at a rate of about 0.5 m/s. The gas collects in the Gas Storage Tank through the connecting pipe.',
+        component: {
+          title: "Gas Connector Pipe",
+          description: "This pipe facilitates the transfer of biogas from the digester to the gas storage tank, ensuring efficient collection of the produced gas.",
+          facts: "The gas connector pipe must be properly sealed to prevent gas leaks and maintain system efficiency."
+        }
+      },
+      {
+        id: 'gasStorageTankGroup',
+        text: 'Step 9: Biogas is stored under pressure in the horizontal Gas Storage Tank. A typical household system produces 1-2 m³ of gas daily - enough for 2-3 hours of cooking.',
+        component: {
+          title: "Gas Storage Tank",
+          description: "The horizontal tank collects and stores gas under pressure, with a connecting pipe to the digester. Pressure is maintained by the weight of the tank or through mechanical means.",
+          facts: "1 m³ of biogas equals about 0.5 kg LPG or 0.7 liters of diesel in energy content."
+        }
+      },
+      {
+        id: 'gasPipe',
+        text: 'Step 10: The collected biogas is then transported via the Gas Pipe to Household for various uses, such as cooking, lighting, or heating.',
+        component: {
+          title: "Gas Pipe to Household",
+          description: "This pipe delivers the usable biogas from the storage tank to the point of consumption, such as a kitchen stove or gas lamp.",
+          facts: "Biogas is a clean, renewable energy source that can significantly reduce reliance on fossil fuels."
+        }
+      },
+      {
+        id: 'outletPipeDigesterToTank',
+        text: 'Step 11: As new slurry enters, it displaces digested material through the Outlet Pipe. This ensures continuous operation without mechanical pumps.',
+        component: {
+          title: "Outlet Pipe",
+          description: "The hydraulic displacement principle allows for continuous operation. The outlet is typically set at a level that maintains about 20% gas storage capacity.",
+          facts: "The outgoing slurry has about 50% less organic matter but retains most nutrients like nitrogen and phosphorus."
+        }
+      },
+      {
+        id: 'outlet',
+        text: 'Step 12: The nutrient-rich digestate collects in the Outlet Tank. This material has higher available nitrogen (up to 50% more) compared to raw manure, making excellent fertilizer.',
+        component: {
+          title: "Outlet Tank",
+          description: "The outlet tank collects digested slurry which has reduced odor and pathogens compared to raw manure, while maintaining or increasing nutrient availability.",
+          facts: "Digestate can increase crop yields by 10-20% compared to untreated manure due to better nutrient availability."
+        }
+      },
+      {
+        id: 'overflowPipe',
+        text: 'Step 13: Any excess material flows to the Overflow Chamber via the Overflow Pipe, preventing overpressure in the system. The entire process is continuous and self-regulating.',
+        component: {
+          title: "Overflow Pipe",
+          description: "The overflow pipe safely directs excess digestate from the outlet tank to the overflow chamber, maintaining optimal liquid levels in the digester.",
+          facts: "Proper overflow management prevents system blockages and ensures efficient digestate collection."
+        }
+      },
+      {
+        id: 'overflowTank',
+        text: 'Step 14: The Overflow Chamber collects any excess digestate, ensuring system stability and providing a reservoir for additional fertilizer.',
+        component: {
+          title: "Overflow Chamber",
+          description: "The overflow provides safety against overfilling and allows for collection of excess effluent during high feed periods or rainfall.",
+          facts: "Some systems connect the overflow to a garden or field for automatic fertilizer distribution."
+        }
+      },
+      {
+        id: 'overflowOutletPipe',
+        text: 'Step 15: The overflow outlet pipe allows for controlled removal of excess digestate from the overflow chamber, which can then be used as fertilizer.',
+        component: {
+          title: "Overflow Outlet Pipe",
+          description: "This pipe facilitates the removal of excess digestate from the overflow chamber, directing it to a collection point or directly to fields for use as fertilizer.",
+          facts: "Proper management of the overflow outlet ensures continuous operation and efficient utilization of all biogas byproducts."
+        }
+      }
+    ];
+
+    const quizAnswers = {
+      q1: "Methane",
+      q2: "Anaerobic",
+      q3: "20-45",
+      q4: "Fertilizer"
+    };
+
+    const quizExplanations = {
+      q1: "Methane (CH₄) is the primary combustible component of biogas, typically making up 50-75% of the gas mixture.",
+      q2: "Anaerobic bacteria thrive in oxygen-free environments and are responsible for breaking down organic matter to produce biogas.",
+      q3: "The mesophilic range (20-45°C) is most common for household digesters as it balances gas production with heating requirements.",
+      q4: "The spent slurry is rich in nutrients like nitrogen, phosphorus, and potassium, making it an excellent organic fertilizer."
+    };
+
+    let stepIndex = -1;
+    let simulationStarted = false;
+    let currentHighlight = null;
+    const svg = document.getElementById('biogasSvg');
+
+    // ANIMATION FUNCTIONS
+    function createIntakeAnimation() {
+      const layer = document.getElementById('waste-animations');
+      layer.innerHTML = '';
+      
+      // Create organic waste items with different shapes and colors
+      for (let i = 0; i < 15; i++) {
+        const waste = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        const x = 70 + Math.random() * 60;
+        const y = 110;
+        
+        // Randomly choose between different waste types
+        const type = Math.floor(Math.random() * 3);
+        switch(type) {
+          case 0: // Banana peel
+            const peel = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            peel.setAttribute('d', `M${x},${y} C${x-5},${y-10} ${x+5},${y-10} ${x+10},${y} C${x+5},${y+5} ${x-5},${y+5} ${x},${y}`);
+            peel.setAttribute('fill', '#ffd700');
+            waste.appendChild(peel);
+            break;
+          case 1: // Apple core
+            const apple = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            apple.setAttribute('cx', x);
+            apple.setAttribute('cy', y);
+            apple.setAttribute('r', 5);
+            apple.setAttribute('fill', '#dc143c');
+            waste.appendChild(apple);
+            break;
+          case 2: // Grass/leaves
+            const grass = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            grass.setAttribute('d', `M${x},${y} L${x+5},${y-10} L${x+10},${y}`);
+            grass.setAttribute('fill', '#228b22');
+            waste.appendChild(grass);
+            break;
+        }
+        
+        waste.classList.add('waste-item');
+        waste.style.animationDelay = `${i * 0.2}s`;
+        layer.appendChild(waste);
+      }
+    }
+
+    function createMixingAnimation() {
+      const layer = document.getElementById('mixing-animations');
+      layer.innerHTML = '';
+      
+      // Create rotating pattern
+      const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      pattern.setAttribute('x', '50');
+      pattern.setAttribute('y', '250');
+      pattern.setAttribute('width', '100');
+      pattern.setAttribute('height', '150');
+      pattern.setAttribute('fill', 'url(#mixingPattern)');
+      pattern.classList.add('mixing-swirl');
+      layer.appendChild(pattern);
+      
+      // Add bubbles
+      for (let i = 0; i < 20; i++) {
+        const bubble = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        bubble.setAttribute('r', 2 + Math.random() * 3);
+        bubble.setAttribute('cx', 75 + Math.random() * 50);
+        bubble.setAttribute('cy', 300 + Math.random() * 80);
+        bubble.setAttribute('fill', 'url(#bubbleGradient)');
+        bubble.classList.add('mixing-bubble');
+        bubble.style.animationDelay = `${Math.random() * 2}s`;
+        layer.appendChild(bubble);
+      }
+    }
+
+    function createDigesterAnimation() {
+      const layer = document.getElementById('digester-animations');
+      layer.innerHTML = '';
+      
+      // Create rotating slurry pattern
+      const slurry = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      slurry.setAttribute('x', '200');
+      slurry.setAttribute('y', '350');
+      slurry.setAttribute('width', '600');
+      slurry.setAttribute('height', '250');
+      slurry.setAttribute('fill', 'url(#digesterPattern)');
+      slurry.classList.add('digester-swirl');
+      layer.appendChild(slurry);
+      
+      // Add rising bubbles
+      for (let i = 0; i < 40; i++) {
+        const bubble = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        bubble.setAttribute('r', 3 + Math.random() * 4);
+        bubble.setAttribute('cx', 250 + Math.random() * 500);
+        bubble.setAttribute('cy', 450 + Math.random() * 100);
+        bubble.setAttribute('fill', 'url(#bubbleGradient)');
+        bubble.classList.add('digester-bubble');
+        bubble.style.animationDelay = `${Math.random() * 4}s`;
+        layer.appendChild(bubble);
+      }
+    }
+
+    function createPipeAnimation(pipeId) {
+      const pipe = document.getElementById(pipeId);
+      if (!pipe) return;
+      
+      const layer = document.getElementById('pipe-animations');
+      const pathData = pipe.getAttribute('d');
+      
+      for (let i = 0; i < 8; i++) {
+        const particle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        particle.setAttribute('r', 3);
+        particle.setAttribute('fill', pipeId.includes('gas') ? '#A5D6A7' : '#8a6d3b');
+        
+        const animateMotion = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
+        animateMotion.setAttribute('path', pathData);
+        animateMotion.setAttribute('dur', '2s');
+        animateMotion.setAttribute('begin', `${i * 0.25}s`);
+        animateMotion.setAttribute('repeatCount', 'indefinite');
+        
+        particle.appendChild(animateMotion);
+        layer.appendChild(particle);
+      }
+    }
+
+    function createGasStorageAnimation() {
+      const layer = document.getElementById('gas-animations');
+      layer.innerHTML = '';
+      
+      // Animate gas level
+      const gasFill = document.getElementById('gasFill');
+      if (gasFill) {
+        gasFill.setAttribute('height', '40');
+        gasFill.setAttribute('y', '10');
+        gasFill.classList.add('gas-fill-animate');
+      }
+      
+      // Add floating particles
+      for (let i = 0; i < 20; i++) {
+        const particle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        particle.setAttribute('r', 2 + Math.random() * 3);
+        particle.setAttribute('cx', 340 + Math.random() * 320);
+        particle.setAttribute('cy', 30 + Math.random() * 40);
+        particle.setAttribute('fill', '#A5D6A7');
+        particle.classList.add('gas-particle');
+        particle.style.animationDelay = `${Math.random() * 3}s`;
+        layer.appendChild(particle);
+      }
+    }
+
+    function createOutletAnimation() {
+      const layer = document.getElementById('outlet-animations');
+      layer.innerHTML = '';
+      
+      // Create flowing slurry effect
+      for (let i = 0; i < 12; i++) {
+        const particle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        particle.setAttribute('r', 3);
+        particle.setAttribute('cx', 875);
+        particle.setAttribute('cy', 460);
+        particle.setAttribute('fill', '#8a6d3b');
+        particle.classList.add('slurry-particle');
+        particle.style.animationDelay = `${i * 0.2}s`;
+        layer.appendChild(particle);
+      }
+    }
+
+    function createOverflowAnimation() {
+      const layer = document.getElementById('overflow-animations');
+      layer.innerHTML = '';
+      
+      // Create dripping effect
+      for (let i = 0; i < 8; i++) {
+        const drip = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        drip.setAttribute('r', 3);
+        drip.setAttribute('cx', 935);
+        drip.setAttribute('cy', 170);
+        drip.setAttribute('fill', '#8a6d3b');
+        drip.classList.add('overflow-drip');
+        drip.style.animationDelay = `${i * 0.3}s`;
+        layer.appendChild(drip);
+      }
+    }
+
+    function stopAllAnimations() {
+      // Clear all animation layers
+      ['waste-animations', 'pipe-animations', 'bubble-animations', 'particle-animations', 'overflow-animations'].forEach(id => {
+        const layer = document.getElementById(id);
+        if (layer) layer.innerHTML = '';
+      });
+      
+      // Reset gas fill
+      const gasFill = document.getElementById('gasFill');
+      if (gasFill) {
+        gasFill.setAttribute('height', '0');
+        gasFill.setAttribute('y', '50');
+        gasFill.classList.remove('gas-fill-animate');
+      }
+      
+      // Remove highlights
+      document.querySelectorAll('.highlight').forEach(el => {
+        el.classList.remove('highlight');
+      });
+    }
+
+    function showStep(index) {
+      if (index >= 0 && index < steps.length) {
+        stepIndex = index;
+        const step = steps[stepIndex];
+        
+        stopAllAnimations();
+        const element = document.getElementById(step.id);
+        if (element) element.classList.add('highlight');
+        currentHighlight = element;
+        
+        // Start appropriate animation
+        switch(step.id) {
+          case 'intakeChamber': 
+            createIntakeAnimation();
+            break;
+          case 'mixingTank':
+            createMixingAnimation();
+            break;
+          case 'digester':
+            createDigesterAnimation();
+            break;
+          case 'gasStorageTankGroup':
+            createGasStorageAnimation();
+            break;
+          case 'outlet':
+            createOutletAnimation();
+            break;
+          case 'overflowTank':
+            createOverflowAnimation();
+            break;
+          case 'intakePipe':
+          case 'inletPipe':
+          case 'outletPipe':
+          case 'overflowPipe':
+          case 'gasConnectorPipe':
+          case 'gasPipe':
+            createPipeAnimation(step.id);
+            break;
+        }
+        
+        // Update text and progress
+        document.getElementById('description').innerHTML = step.text;
+        document.getElementById('componentTitle').textContent = step.component.title;
+        document.getElementById('componentDescription').textContent = step.component.description;
+        document.getElementById('componentFacts').innerHTML = `<strong>Did you know?</strong> ${step.component.facts}`;
+        document.getElementById('componentDetails').style.display = 'block';
+
+        const progress = ((stepIndex + 1) / steps.length) * 100;
+        document.getElementById('progressBar').style.width = `${progress}%`;
+
+        document.getElementById('prevStep').disabled = stepIndex === 0;
+        document.getElementById('nextStep').disabled = false;
+
+        if (stepIndex === steps.length - 1) {
+          document.getElementById('nextStep').disabled = true;
+          document.getElementById('description').innerHTML +=
+            '<p style="margin-top:10px;font-weight:bold;color:#2a5934;">Simulation complete! Review the steps or test your knowledge with the quiz below.</p>';
+        }
+      }
+    }
+
+    function startSimulation() {
+      if (!simulationStarted) {
+        simulationStarted = true;
+        stepIndex = 0;
+        document.getElementById('startSimulation').disabled = true;
+        document.getElementById('prevStep').disabled = false;
+        document.getElementById('nextStep').disabled = false;
+        showStep(stepIndex);
+      }
+    }
+
+    function resetSimulation() {
+      simulationStarted = false;
+      stepIndex = -1;
+      stopAllAnimations();
+      document.getElementById('description').innerHTML =
+        'Click "Start Simulation" to begin the step-by-step explanation of how a biogas digester works.';
+      document.getElementById('componentDetails').style.display = 'none';
+      document.getElementById('progressBar').style.width = '0%';
+      document.getElementById('startSimulation').disabled = false;
+      document.getElementById('prevStep').disabled = true;
+      document.getElementById('nextStep').disabled = true;
+      document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
+      document.getElementById('quizResult').style.display = 'none';
+    }
+
+    function checkQuiz() {
+      let score = 0;
+      const results = [];
+
+      for (const [question, correctAnswer] of Object.entries(quizAnswers)) {
+        const selected = document.querySelector(`input[name="${question}"]:checked`);
+        if (selected) {
+          if (selected.value === correctAnswer) {
+            score++;
+            results.push(`✔ Question ${question[1]}: Correct! ${quizExplanations[question]}`);
+          } else {
+            results.push(`✖ Question ${question[1]}: Incorrect. The correct answer is ${correctAnswer}. ${quizExplanations[question]}`);
+          }
+        } else {
+          results.push(`? Question ${question[1]}: Not answered. The correct answer is ${correctAnswer}. ${quizExplanations[question]}`);
+        }
+      }
+
+      const resultDiv = document.getElementById('quizResult');
+      resultDiv.innerHTML = results.join('<br><br>');
+      resultDiv.className = score === Object.keys(quizAnswers).length ? 'correct' : 'incorrect';
+      resultDiv.style.display = 'block';
+      resultDiv.innerHTML += `<br><br><strong>You scored ${score} out of ${Object.keys(quizAnswers).length}.</strong>`;
+      resultDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Initialize
+    document.getElementById('startSimulation').addEventListener('click', startSimulation);
+    document.getElementById('prevStep').addEventListener('click', () => showStep(stepIndex - 1));
+    document.getElementById('nextStep').addEventListener('click', () => showStep(stepIndex + 1));
+    document.getElementById('resetSimulation').addEventListener('click', resetSimulation);
+    document.getElementById('submitQuiz').addEventListener('click', checkQuiz);
+
+    resetSimulation();
+  </script>
 </body>
 </html>
