@@ -1,1 +1,7 @@
-### Link your references in here
+- [IIT Bombay Virtual Labs – Biogas Production](http://vlab.co.in/broad-area-biotechnology#chemical-engineering)
+- [NPTEL – Biogas Technology Course](https://nptel.ac.in/courses/126/105/126105019)
+- [ResearchGate – Web-Based Virtual Lab for Anaerobic Digestion](https://www.researchgate.net/publication/344425370_Web-Based_Virtual_Lab_for_Learning_Design_Operation_Control_and_Optimization_of_an_Anaerobic_Digestion_Process)
+- [IRJET – Biogas Production using Cow Dung and Kitchen Waste](https://www.irjet.net/archives/V5/i2/IRJET-V5I275.pdf)
+- [NREL – Anaerobic Digestion Basics](https://www.nrel.gov/docs/fy07osti/41561.pdf)
+- [Wevolver – Simulation of Anaerobic Digestion using MATLAB](https://www.wevolver.com/article/dynamic-simulation-and-optimization-of-anaerobic-digestion-processes-using-matlab)
+- [ABC – Virtual Digester Operator School](https://americanbiogascouncil.org/operator-training/virtual/)
