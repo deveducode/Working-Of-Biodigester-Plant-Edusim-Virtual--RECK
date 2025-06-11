@@ -46,3 +46,6 @@ The construction of a biodigester plant is designed to support the anaerobic dig
 * Valves, pipes, and pressure regulators for gas flow.
 * Stirring mechanism (in some plants) for even digestion.
 * Insulation for temperature control in colder climates.
+
+
+![image alt](https://github.com/deveducode/Working-Of-Biodigester-Plant-Edusim-Virtual--RECK/blob/78f80253dec05d1cde6c2455d13f4e6101200584/experiment/biodigester.jpg)
