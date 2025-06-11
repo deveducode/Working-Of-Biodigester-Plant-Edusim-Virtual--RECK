@@ -2,16 +2,16 @@
 
    "details": [
        {
-			"Experiment": "Voltage Distribution Across String Insulators",     
-			"Lab": "Power System Lab",               
-			"Discipline": "Electronics Engineering",				 
+			"Experiment": "Working of Biodigester Plant",     
+			"Lab": "Chemical Engineering Lab",               
+			"Discipline": "Chemical Engineering",				 
 			"Technology": "HTML CSS Javascript"         
        }
    ],
 
    "developer": [
        {       
-      "Developer": "Mr. Rajeev Baghel",         
+      "Developer": "Dr. Ravish Rajput",         
       "Institute": "REC Kannauj",         
       "InstituteAcronym": "RECK"   
        }
@@ -19,33 +19,29 @@
 
    "contributer": [
        {       
-			"Contributer": "Ridam Sharma",             
+			"Contributer": "Devendra Singh",             
       "Institute": "REC Kannauj",               
 			"InstituteAcronym": "RECK"         
        },
 
        {       
-			"Contributer": "Dhananjay Singh Gaur",              
+			"Contributer": "Aditya Singh",              
       "Institute": "REC Kannauj",               
 			"InstituteAcronym": "RECK"         
        },
 
        {       
-			"Contributer": "Ichha Shukla",             
+			"Contributer": "Hari Govind Tiwari",             
       "Institute": "REC Kannauj",               
 			"InstituteAcronym": "RECK"         
        },
 
        {       
-			"Contributer": "Satish Kumar",              
+			"Contributer": "Khushi Gupta",              
       "Institute": "REC Kannauj",               
 			"InstituteAcronym": "RECK"         
        },
-       {       
-			"Contributer": "Shaili Chauhan",              
-      "Institute": "REC Kannauj",               
-			"InstituteAcronym": "RECK"         
-       }
+      
    ]
 
 }
