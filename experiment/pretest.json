@@ -2,12 +2,12 @@
   "version": 2.0,
   "questions": [
     {
-      "question": "This is a Sample Question 1?",
+      "question": "What is the primary purpose of a biodigester plant?",
       "answers": {
-        "a": "answer1",
-        "b": "answer2",
-        "c": "answer3",
-        "d": "answer4"
+        "a": "To purify drinking water",
+        "b": "To convert organic waste into biogas and slurry",
+        "c": "To generate electricity directly from sunlight",
+        "d": "To burn waste materials for heat"
       },
       "explanations": {
         "a": "Explanation 1  <a href='www.google.com'>here</a>",
@@ -15,16 +15,16 @@
         "c": "Explanation 2",
         "d": "Explanation 2"
       },
-      "correctAnswer": "a",
+      "correctAnswer": "b",
       "difficulty": "beginner"
     },
     {
-      "question": "This is a Sample Question 2?",
+      "question": "Which of the following is typically used as feedstock in a biodigester?",
       "answers": {
-        "a": "answer1",
-        "b": "answer2",
-        "c": "answer3",
-        "d": "answer4"
+        "a": "Plastic waste",
+        "b": "Metal scraps",
+        "c": "Kitchen and agricultural waste",
+        "d": "Fossil fuels"
       },
       "explanations": {
         "a": "Explanation 1  <a href='www.google.com'>here</a>",
