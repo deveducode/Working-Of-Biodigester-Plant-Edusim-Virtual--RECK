@@ -1,1 +1,1 @@
-### Chemical Science Engineering
+### Chemical Engineering Lab
