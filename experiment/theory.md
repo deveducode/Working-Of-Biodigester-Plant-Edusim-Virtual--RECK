@@ -1,4 +1,4 @@
-### Theory of Working of a Biodigester Plant
+### Working of a Biodigester Plant
 
 A biodigester plant operates on the principle of **anaerobic digestion**, a biological process where microorganisms break down organic waste (such as food waste, animal manure, or agricultural residues) in the absence of oxygen. This decomposition results in the production of two key outputs:
 
@@ -47,5 +47,4 @@ The construction of a biodigester plant is designed to support the anaerobic dig
 * Stirring mechanism (in some plants) for even digestion.
 * Insulation for temperature control in colder climates.
 
-
-![image alt](https://github.com/deveducode/Working-Of-Biodigester-Plant-Edusim-Virtual--RECK/blob/78f80253dec05d1cde6c2455d13f4e6101200584/experiment/biodigester.jpg)
+<img src="https://github.com/deveducode/Working-Of-Biodigester-Plant-Edusim-Virtual--RECK/blob/main/experiment/images/biodigester.jpg?raw=true" height="500px" width="1000px">
