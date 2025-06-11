@@ -1,6 +1,3 @@
-### Procedure
-
-
 ### 1. Collection of Organic Waste
 
 Organic materials such as kitchen waste, animal dung, agricultural residues, and sewage sludge are collected and brought to the plant.
